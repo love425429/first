@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.psk.first.common.BaseController;
 import com.psk.first.common.LogUtil;
+import com.psk.first.utils.ConfigUtil;
 
 @Controller
 public class HelloWordController extends BaseController
@@ -31,6 +32,7 @@ public class HelloWordController extends BaseController
 		String user = request.getParameter("user");
 		result.put("user", user);
 		result.put("say", "hello world");
+		result.put("testConfig", ConfigUtil.getStringValueFromConfig("redis.hosts", ""));
 		LogUtil.INFO(log, "HelloWordController", "hello", "param", "info", "user", user);
 		try
 		{
