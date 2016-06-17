@@ -9,6 +9,7 @@ import org.apache.commons.logging.LogFactory;
 import com.psk.first.common.LogUtil;
 
 public class ConfigUtil {
+	
 	private static final Properties configProp = new Properties();
 	private  static final String config = "config.properties";
 	private static Log log = LogFactory.getLog("__ConfigUtil__");
