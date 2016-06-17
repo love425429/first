@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration 
+	xmlns:log4j='http://jakarta.apache.org/log4j/'>
+
+	<!-- 标准输出 -->
+	<appender name="stdout" class="org.apache.log4j.ConsoleAppender">
+	    <layout class="org.apache.log4j.PatternLayout">
+		<param name="ConversionPattern" 
+		  value="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />
+	    </layout>
+	</appender>
+	
+	<!-- spring整合系统日记 -->
+	<appender name="system" class="org.apache.log4j.DailyRollingFileAppender">
+	   <param name="File" value="logs/spring.log" />
+	   <param name="DatePattern" value="'.'yyyy-MM-dd" />
+	   <layout class="org.apache.log4j.PatternLayout">
+		<param name="ConversionPattern" 
+			value="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />
+	   </layout>
+	</appender>
+	
+	<!-- 错误日记 -->
+	<appender name="error" class="org.apache.log4j.DailyRollingFileAppender">
+	   <param name="File" value="logs/common_error.log" />
+	   <param name="DatePattern" value="'.'yyyy-MM-dd-HH" />
+	   <layout class="org.apache.log4j.PatternLayout">
+		<param name="ConversionPattern" 
+			value="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />
+	   </layout>
+	   <filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="ERROR" />
+		</filter>
+	</appender>
+	
+
+	
+	<!-- 系统内部模块配置 -->
+	<appender name="servicelog" class="org.apache.log4j.DailyRollingFileAppender">
+	   <param name="File" value="logs/mvc.log" />
+	   <param name="DatePattern" value="'.'yyyy-MM-dd-HH" />
+	   <layout class="org.apache.log4j.PatternLayout">
+		<param name="ConversionPattern" 
+			value="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />
+	   </layout>
+	   <filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="INFO" />
+		</filter>
+	</appender>
+	
+	<logger name="com.psk" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="servicelog" />
+		<appender-ref ref="error" />
+	</logger>
+	
+	<root>
+	  <level value="INFO"/>
+	  <appender-ref ref="stdout"/>
+	  <appender-ref ref="system"/>
+	  <appender-ref ref="error" />
+	</root>
+</log4j:configuration>

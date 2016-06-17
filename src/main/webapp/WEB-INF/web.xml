@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
+	<context-param>     
+      <param-name>log4jConfigLocation</param-name>     
+      <param-value>classpath:log4j.xml</param-value>     
+   	</context-param> 
+	<filter>
+	    <filter-name>encodingFilter</filter-name>
+	    <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+	    <init-param>
+	        <param-name>encoding</param-name>
+	        <param-value>UTF-8</param-value>
+	    </init-param>
+	    <init-param>
+	        <param-name>forceEncoding</param-name>
+	        <param-value>true</param-value>
+	    </init-param>
+	</filter>
+	<filter-mapping>
+	    <filter-name>encodingFilter</filter-name>
+	    <url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+	<!-- global scope  通常来说spring 只有一个根root 环境层级关系，每个servlet可以有自己单独的环境层级关系 同时继承 root 环境层级关系  servlet可以覆盖root环境的关系-->
+	<!-- Configurations for the root application context (parent context) -->
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>
+            classpath:*Context.xml
+        </param-value>
+        <!-- 对于Context.xml结尾的配置都放入root根节点环境中 -->
+    </context-param>
+
+	<!--servlet scope springmvc 拦截器 DispatcherServlet-->
+	 <servlet>
+	      <servlet-name>first</servlet-name>
+	      <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+	      <init-param>
+	            <param-name>contextConfigLocation</param-name>
+	            <param-value>classpath:first-servlet.xml</param-value>
+	        </init-param>
+	        <load-on-startup>1</load-on-startup>
+	  </servlet>
+	  <servlet-mapping>
+	      <servlet-name>first</servlet-name>
+	      <url-pattern>*.html</url-pattern>
+	  </servlet-mapping>
+	  
+	  <!-- 防刷 内存泄露  保证在web 应用关闭的时候释放与掉这个web 应用相关的class loader 和由它管理的类-->
+	  <!-- 
+	  	如果你使用了JavaBeans Introspector来分析应用中的类，Introspector 缓冲会保留这些类的引用，
+	  	结果在你的应用关闭的时候，这些类以及web 应用相关的class loader没有被垃圾回收，不幸的是，
+	  	清除Introspector的唯一方式是刷新整个缓冲，这是因为我们没法判断哪些是属于你的应用的引用.
+	  	所以删除被缓冲的introspection会导致把这台电脑上的所有应用的introspection都删掉.需要注意的是，spring
+		托管的bean不需要使用这个监听器，因为spring它自己的introspection所使用的缓冲在分析完一个类之后会被马上从javaBeans 
+		Introspector缓冲中清除掉，应用程序中的类从来不直接使用JavaBeans Introspector，所以他们一般不会导致内存资源泄露。
+		但是一些类库和框架的整合使用往往会产生这个问题，例如：Struts 和Quartz。由此造成的内存泄漏会导致整个的web应用的类加载器
+		不能进行垃圾回收，在web应用关闭之后，你会看到此应用的所有静态类资源(例如单例），这个错误当然不是由这个类自身引起的。
+	  -->
+	  <listener>
+	  	<listener-class>org.springframework.web.util.IntrospectorCleanupListener</listener-class>
+	  </listener>
+	  
+	  <listener>  
+        <listener-class>  
+            org.springframework.web.util.Log4jConfigListener  
+        </listener-class>  
+      </listener>
+	  
+	  <!-- bean scope 支持 request session globalSession模式-->
+	  <!-- 
+	  pring的bean的scope主要是用来指定如何创建bean对象的，系统已经实现的主要有五中类型，分别是：
+	  singleton、prototype、request、session和globalSession，其中request、session和globalSession
+	    是只能在web环境中使用的 ，当你在非web环境中使用它们时，系统会抛出IllegalStateException异常， 
+	    当然这个也是可以自己进行定义的。注意：在使用request、session和globalSession的时候，如果你用的
+	    不是springMVC的话是需要做一点配置;
+	  prototype不是单例形式的，它会在每次有一个新的请求来请求当前对象的时候都会生成一个新的对象。
+	    值得注意的是当一个singleton的bean A 依赖于一个prototype的bean B 的时候，由于singleton
+	    的bean A 只会初始化一次，那么如果在其初始化的时候就给其注入一个prototype的bean B 的时候，
+	  A拥有的B就只会在A初始化的时候初始化一次，而且每次在A使用B的时候都是用的同一个对象B，这与我们
+	    原始想的B为prototype有点违背，不是我们想要的结果，其解决办法是，使bean A 实现一个ApplicationContextAware接口，
+	    在每次A需要使用B的时候都从ApplicationContext里面取一个B对象，这个时候取的B对象每次都会是不一样的。
+	  -->
+	  <listener>  
+		  <listener-class>  
+		      org.springframework.web.context.request.RequestContextListener  
+		  </listener-class>  
+	  </listener>
+	  
+	  <welcome-file-list>
+	  	<welcome-file>
+	  		index.jsp
+	  	</welcome-file>
+	  </welcome-file-list> 
+</web-app>
