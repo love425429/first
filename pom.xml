@@ -18,6 +18,12 @@
   			<env>test</env>
   		</properties>
   	</profile>
+  	<profile>
+  		<id>online</id>
+  		<properties>
+  			<env>online</env>
+  		</properties>
+  	</profile>
   </profiles>
   <build>
   	<plugins>
