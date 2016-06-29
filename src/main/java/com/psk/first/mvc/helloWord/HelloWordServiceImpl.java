@@ -1,4 +1,4 @@
-package com.psk.first.mvc;
+package com.psk.first.mvc.helloWord;
 
 import java.util.ArrayList;
 import java.util.List;
