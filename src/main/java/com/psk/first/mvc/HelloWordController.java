@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +23,9 @@ public class HelloWordController extends BaseController
 {
 
 	private Log log = LogFactory.getLog(this.getClass());
+
+	@Autowired
+	private HelloWordService helloWordService;
 
 	@RequestMapping(value =
 	{ "hello.html" })
@@ -56,5 +60,15 @@ public class HelloWordController extends BaseController
 		modelMap.put("user", user);
 		modelMap.put("say", "hello world");
 		return "index";
+	}
+
+	@RequestMapping(value =
+	{ "mybatis.html" })
+	@ResponseBody
+	public Map<String, Object> mybatis(HttpServletRequest request, HttpServletResponse response, ModelMap modelMap)
+	{
+		Map<String, Object> result = new HashMap<String, Object>();
+		result.put("users", helloWordService.getAllUserInfo());
+		return result;
 	}
 }

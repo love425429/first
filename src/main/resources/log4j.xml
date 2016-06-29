@@ -2,6 +2,9 @@
 <!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
 <log4j:configuration 
 	xmlns:log4j='http://jakarta.apache.org/log4j/'>
+	
+	<!-- 加载config.properties文件中的内容 -->
+	<context:property-placeholder location="classpath:config.properties"/>
 
 	<!-- 标准输出 -->
 	<appender name="stdout" class="org.apache.log4j.ConsoleAppender">
@@ -49,7 +52,15 @@
 		</filter>
 	</appender>
 	
-	<logger name="com.psk" additivity="false">
+	<!--
+	If you are inheriting from the spring-boot-starter-parent POM, 
+	the default filter token of the maven-resources-plugins has been 
+	changed from ${*} to @ (i.e. @maven.token@ instead of ${maven.token}) 
+	to prevent conflicts with Spring-style placeholders. If you have enabled 
+	maven filtering for the application.properties directly, you may want to 
+	also change the default filter token to use other delimiters. 
+	-->
+	<logger name="@project.groupId@" additivity="false">
 		<level value="INFO" />
 		<appender-ref ref="servicelog" />
 		<appender-ref ref="error" />
