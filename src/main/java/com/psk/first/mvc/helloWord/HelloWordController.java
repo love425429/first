@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.psk.first.common.BaseController;
 import com.psk.first.common.LogUtil;
+import com.psk.first.common.model.TestUser;
+import com.psk.first.common.redis.RedisUtil;
 import com.psk.first.utils.ConfigUtil;
 
 @Controller
@@ -26,6 +28,8 @@ public class HelloWordController extends BaseController
 
 	@Autowired
 	private HelloWordService helloWordService;
+
+	private RedisUtil testRedis = new RedisUtil("serverName1");
 
 	@RequestMapping(value =
 	{ "hello.html" })
@@ -69,6 +73,21 @@ public class HelloWordController extends BaseController
 	{
 		Map<String, Object> result = new HashMap<String, Object>();
 		result.put("users", helloWordService.getAllUserInfo());
+		return result;
+	}
+
+	@RequestMapping(value =
+	{ "redis.html" })
+	@ResponseBody
+	public Map<String, Object> redis(HttpServletRequest request, HttpServletResponse response, ModelMap modelMap)
+	{
+		Map<String, Object> result = new HashMap<String, Object>();
+		TestUser testUser = new TestUser();
+		testUser.setAge(28);
+		testUser.setName("psk");
+		testUser.setUserId(007);
+		testRedis.javaSet("user" + testUser.getUserId(), testUser);
+		result.put("user" + testUser.getUserId(), testRedis.javaGet("user" + testUser.getUserId()));
 		return result;
 	}
 }

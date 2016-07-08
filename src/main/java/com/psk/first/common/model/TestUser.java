@@ -1,7 +1,13 @@
 package com.psk.first.common.model;
 
-public class TestUser
+import java.io.Serializable;
+
+public class TestUser implements Serializable
 {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3781584086817143890L;
 	private long userId;
 	private String name;
 	private int age;
