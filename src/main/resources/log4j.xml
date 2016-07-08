@@ -3,9 +3,6 @@
 <log4j:configuration 
 	xmlns:log4j='http://jakarta.apache.org/log4j/'>
 	
-	<!-- 加载config.properties文件中的内容 -->
-	<context:property-placeholder location="classpath:config.properties" ignore-unresolvable="true"/>
-
 	<!-- 标准输出 -->
 	<appender name="stdout" class="org.apache.log4j.ConsoleAppender">
 	    <layout class="org.apache.log4j.PatternLayout">
