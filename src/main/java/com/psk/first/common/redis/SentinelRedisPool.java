@@ -9,7 +9,6 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisSentinelPool;
 
-import com.psk.first.common.redis.ClusterRedisPool.ExtendsJedisCluster;
 import com.psk.first.utils.ConfigUtil;
 
 public class SentinelRedisPool implements IRedisType
@@ -96,11 +95,4 @@ public class SentinelRedisPool implements IRedisType
 	{
 		return this.serverName;
 	}
-
-	@Override
-	public ExtendsJedisCluster getRedisClusterClient()
-	{
-		return null;
-	}
-
 }

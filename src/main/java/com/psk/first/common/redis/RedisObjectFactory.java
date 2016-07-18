@@ -84,12 +84,12 @@ public class RedisObjectFactory
 
 	private IRedisType buildSentinel(final String redisServerName)
 	{
-		return null;
+		return new SentinelRedisPool(redisServerName);
 	}
 
 	private IRedisType buildCluster(final String redisServerName)
 	{
-		return null;
+		return new ClusterRedisPool(redisServerName);
 	}
 
 	@PreDestroy

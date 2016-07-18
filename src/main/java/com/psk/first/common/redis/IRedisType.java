@@ -2,8 +2,6 @@ package com.psk.first.common.redis;
 
 import redis.clients.jedis.Jedis;
 
-import com.psk.first.common.redis.ClusterRedisPool.ExtendsJedisCluster;
-
 public interface IRedisType
 {
 	/**
@@ -14,8 +12,6 @@ public interface IRedisType
 	public final static String CLUSTER = "cluster";
 
 	public Jedis getRedisClient();
-
-	public ExtendsJedisCluster getRedisClusterClient();
 
 	public void returnResource(Jedis j);
 

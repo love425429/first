@@ -29,7 +29,7 @@ public class HelloWordController extends BaseController
 	@Autowired
 	private HelloWordService helloWordService;
 
-	private RedisUtil testRedis = new RedisUtil("serverName1");
+	private RedisUtil testRedis = new RedisUtil("serverName3");
 
 	@RequestMapping(value =
 	{ "hello.html" })
@@ -88,6 +88,7 @@ public class HelloWordController extends BaseController
 		testUser.setUserId(007);
 		testRedis.javaSet("user" + testUser.getUserId(), testUser);
 		result.put("user" + testUser.getUserId(), testRedis.javaGet("user" + testUser.getUserId()));
+		result.put("keys", testRedis.keys("user*"));
 		return result;
 	}
 }

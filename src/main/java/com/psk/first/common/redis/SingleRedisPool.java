@@ -6,7 +6,6 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
-import com.psk.first.common.redis.ClusterRedisPool.ExtendsJedisCluster;
 import com.psk.first.utils.ConfigUtil;
 
 public class SingleRedisPool implements IRedisType
@@ -74,11 +73,5 @@ public class SingleRedisPool implements IRedisType
 	public String getServerName()
 	{
 		return this.serverName;
-	}
-
-	@Override
-	public ExtendsJedisCluster getRedisClusterClient()
-	{
-		return null;
 	}
 }

@@ -17,7 +17,6 @@ import redis.clients.jedis.Transaction;
 import redis.clients.jedis.Tuple;
 
 import com.psk.first.common.LogUtil;
-import com.psk.first.common.redis.ClusterRedisPool.ExtendsJedisCluster;
 import com.psk.first.utils.JacksonUtils;
 import com.psk.first.utils.SerializeUtil;
 
@@ -26,17 +25,11 @@ public class RedisUtil implements IRedisIOp
 	private final static Log log = LogFactory.getLog(RedisUtil.class);
 
 	private IRedisType redisPool = null;
-	private boolean isRedisCluster = false;
 
 	public RedisUtil(String serverName)
 	{
 		RedisObjectFactory redisObjectFactory = RedisObjectFactory.getInstance();
 		this.redisPool = redisObjectFactory.build(serverName);
-		if (this.redisPool != null && this.redisPool instanceof ClusterRedisPool)
-		{
-			isRedisCluster = true;
-		}
-
 	}
 
 	@Override
@@ -47,16 +40,11 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = this.redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
 			byte[] keyBytes = key.getBytes("UTF-8");
 			byte[] valueBytes = SerializeUtil.javaSerialize(value);
-			return isRedisCluster ? jedisCluster.set(keyBytes, valueBytes) : jedis.set(keyBytes, valueBytes);
+			return jedis.set(keyBytes, valueBytes);
 		}
 		catch (Exception e)
 		{
@@ -80,17 +68,11 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
 			byte[] keyBytes = key.getBytes("UTF-8");
 			byte[] valueBytes = SerializeUtil.javaSerialize(value);
-			return isRedisCluster ? jedisCluster.setex(keyBytes, seconds, valueBytes) : jedis.setex(keyBytes, seconds,
-					valueBytes);
+			return jedis.setex(keyBytes, seconds, valueBytes);
 		}
 		catch (Exception e)
 		{
@@ -113,15 +95,10 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = this.redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
 			byte[] keyBytes = key.getBytes("UTF-8");
-			byte[] valueBytes = isRedisCluster ? jedisCluster.get(keyBytes) : jedis.get(keyBytes);
+			byte[] valueBytes = jedis.get(keyBytes);
 			if (null == valueBytes)
 			{
 				LogUtil.INFO(log, "RedisUtil", "javaGet", "valueBytes", "error", "key", key, "valueBytes", null);
@@ -154,16 +131,11 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
 			byte[] keyBytes = key.getBytes("UTF-8");
 			byte[] valueBytes = SerializeUtil.hessian2Serialize(value);
-			String result = isRedisCluster ? jedisCluster.set(keyBytes, valueBytes) : jedis.set(keyBytes, valueBytes);
+			String result = jedis.set(keyBytes, valueBytes);
 			return result;
 		}
 		catch (Exception e)
@@ -190,17 +162,11 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
 			byte[] keyBytes = key.getBytes("UTF-8");
 			byte[] valueBytes = SerializeUtil.hessian2Serialize(value);
-			String result = isRedisCluster ? jedisCluster.setex(keyBytes, seconds, valueBytes) : jedis.setex(keyBytes,
-					seconds, valueBytes);
+			String result = jedis.setex(keyBytes, seconds, valueBytes);
 			return result;
 		}
 		catch (Exception e)
@@ -228,15 +194,10 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
 			byte[] keyBytes = key.getBytes("UTF-8");
-			byte[] valueBytes = isRedisCluster ? jedisCluster.get(keyBytes) : jedis.get(keyBytes);
+			byte[] valueBytes = jedis.get(keyBytes);
 			if (null == valueBytes)
 			{
 				//log.cacheInfo("Get Key：" + key + " missed!");
@@ -280,19 +241,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			if (isRedisCluster)
-			{
-				LogUtil.INFO(log, "RedisUtil", "getKeySetByPattern", "redisClusterNotSupportKeys", "fatal", "pattern",
-						pattern);
-			}
-			Set<String> setKeys = isRedisCluster ? null : jedis.keys(pattern);
+			Set<String> setKeys = jedis.keys(pattern);
 			return setKeys;
 		}
 		catch (Exception e)
@@ -324,20 +275,10 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		String keysInKeySet = null;
 		try
 		{
-			if (isRedisCluster)
-			{
-				LogUtil.INFO(log, "RedisUtil", "patternHessianGet", "redisClusterNotSupportKeys", "fatal", "pattern",
-						pattern);
-			}
-			Set<String> setKeys = isRedisCluster ? null : jedis.keys(pattern);
+			Set<String> setKeys = jedis.keys(pattern);
 			if (null == setKeys || setKeys.isEmpty())
 			{
 				//log.infoInfo("patternHessianGet not find keypattern:" + pattern);
@@ -350,7 +291,7 @@ public class RedisUtil implements IRedisIOp
 			{
 				keysInKeySet = it.next();
 				byte[] keyBytes = keysInKeySet.getBytes("UTF-8");
-				byte[] valueBytes = isRedisCluster ? jedisCluster.get(keyBytes) : jedis.get(keyBytes);
+				byte[] valueBytes = jedis.get(keyBytes);
 				valueInKeysSet = SerializeUtil.hessian2Deserialize(valueBytes);
 				//				log.cacheInfo(keysInKeySet + "=" + valueInKeysSet);
 				objectList.add(valueInKeysSet);
@@ -387,15 +328,10 @@ public class RedisUtil implements IRedisIOp
 			return false;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
 			byte[] keyBytes = key.getBytes("UTF-8");
-			return isRedisCluster ? jedisCluster.exists(keyBytes) : jedis.exists(keyBytes);
+			return jedis.exists(keyBytes);
 		}
 		catch (Exception e)
 		{
@@ -421,18 +357,14 @@ public class RedisUtil implements IRedisIOp
 			return;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
+
 		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
+
 		}
 		try
 		{
 			byte[] keyBytes = key.getBytes("UTF-8");
-			//			if (jedis.exists(keyBytes))
-			//			{
-			Long ret = isRedisCluster ? jedisCluster.del(keyBytes) : jedis.del(keyBytes);
-			//			}
+			Long ret = jedis.del(keyBytes);
 			return;
 		}
 		catch (Exception e)
@@ -459,14 +391,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.del(key) : jedis.del(key);
+			return jedis.del(key);
 		}
 		catch (Exception e)
 		{
@@ -492,14 +419,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.del(keys) : jedis.del(keys);
+			return jedis.del(keys);
 		}
 		catch (Exception e)
 		{
@@ -528,14 +450,9 @@ public class RedisUtil implements IRedisIOp
 		if (StringUtils.isBlank(key))
 			return null;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			Set<String> members = isRedisCluster ? jedisCluster.zrange(key, 0, -1) : jedis.zrange(key, 0, -1);
+			Set<String> members = jedis.zrange(key, 0, -1);
 			return members;
 		}
 		catch (Exception e)
@@ -565,14 +482,9 @@ public class RedisUtil implements IRedisIOp
 		if (StringUtils.isBlank(key))
 			return null;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.zadd(key, score, value) : jedis.zadd(key, score, value);
+			return jedis.zadd(key, score, value);
 		}
 		catch (Exception e)
 		{
@@ -601,14 +513,9 @@ public class RedisUtil implements IRedisIOp
 		if (StringUtils.isBlank(key))
 			return;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			Long ret = isRedisCluster ? jedisCluster.zrem(key, value) : jedis.zrem(key, value);
+			Long ret = jedis.zrem(key, value);
 		}
 		catch (Exception e)
 		{
@@ -635,14 +542,9 @@ public class RedisUtil implements IRedisIOp
 		if (StringUtils.isBlank(key))
 			return null;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.zcard(key) : jedis.zcard(key);
+			return jedis.zcard(key);
 		}
 		catch (Exception e)
 		{
@@ -665,14 +567,9 @@ public class RedisUtil implements IRedisIOp
 		if (StringUtils.isBlank(key))
 			return null;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.zcount(key, min, max) : jedis.zcount(key, min, max);
+			return jedis.zcount(key, min, max);
 		}
 		catch (Exception e)
 		{
@@ -702,14 +599,9 @@ public class RedisUtil implements IRedisIOp
 		if (StringUtils.isBlank(key))
 			return null;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.zrange(key, start, end) : jedis.zrange(key, start, end);
+			return jedis.zrange(key, start, end);
 		}
 		catch (Exception e)
 		{
@@ -732,15 +624,9 @@ public class RedisUtil implements IRedisIOp
 		if (StringUtils.isBlank(key))
 			return null;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.zrangeWithScores(key, start, end) : jedis.zrangeWithScores(key, start,
-					end);
+			return jedis.zrangeWithScores(key, start, end);
 		}
 		catch (Exception e)
 		{
@@ -770,14 +656,9 @@ public class RedisUtil implements IRedisIOp
 		if (StringUtils.isBlank(key))
 			return null;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.zrangeByScore(key, min, max) : jedis.zrangeByScore(key, min, max);
+			return jedis.zrangeByScore(key, min, max);
 		}
 		catch (Exception e)
 		{
@@ -800,14 +681,9 @@ public class RedisUtil implements IRedisIOp
 		if (StringUtils.isBlank(key))
 			return null;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.zrevrange(key, start, end) : jedis.zrevrange(key, start, end);
+			return jedis.zrevrange(key, start, end);
 		}
 		catch (Exception e)
 		{
@@ -830,15 +706,9 @@ public class RedisUtil implements IRedisIOp
 		if (StringUtils.isBlank(key))
 			return null;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.zrevrangeWithScores(key, start, end) : jedis.zrevrangeWithScores(key,
-					start, end);
+			return jedis.zrevrangeWithScores(key, start, end);
 		}
 		catch (Exception e)
 		{
@@ -867,15 +737,9 @@ public class RedisUtil implements IRedisIOp
 		if (StringUtils.isBlank(key) || start < 0)
 			return;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			Long ret = isRedisCluster ? jedisCluster.zremrangeByRank(key, start, end) : jedis.zremrangeByRank(key,
-					start, end);
+			Long ret = jedis.zremrangeByRank(key, start, end);
 		}
 		catch (Exception e)
 		{
@@ -906,14 +770,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.zscore(key, member) : jedis.zscore(key, member);
+			return jedis.zscore(key, member);
 		}
 		catch (Exception e)
 		{
@@ -943,14 +802,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.zremrangeByRank(key, min, max) : jedis.zremrangeByRank(key, min, max);
+			return jedis.zremrangeByRank(key, min, max);
 		}
 		catch (Exception e)
 		{
@@ -975,14 +829,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.zrank(key, member) : jedis.zrank(key, member);
+			return jedis.zrank(key, member);
 		}
 		catch (Exception e)
 		{
@@ -1007,14 +856,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.zrevrank(key, member) : jedis.zrevrank(key, member);
+			return jedis.zrevrank(key, member);
 		}
 		catch (Exception e)
 		{
@@ -1039,14 +883,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.hget(key, field) : jedis.hget(key, field);
+			return jedis.hget(key, field);
 		}
 		catch (Exception e)
 		{
@@ -1071,14 +910,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.hset(key, field, value) : jedis.hset(key, field, value);
+			return jedis.hset(key, field, value);
 		}
 		catch (Exception e)
 		{
@@ -1103,14 +937,9 @@ public class RedisUtil implements IRedisIOp
 			return false;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.hexists(key, field) : jedis.hexists(key, field);
+			return jedis.hexists(key, field);
 		}
 		catch (Exception e)
 		{
@@ -1135,14 +964,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.hgetAll(key) : jedis.hgetAll(key);
+			return jedis.hgetAll(key);
 		}
 		catch (Exception e)
 		{
@@ -1167,14 +991,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.hkeys(key) : jedis.hkeys(key);
+			return jedis.hkeys(key);
 		}
 		catch (Exception e)
 		{
@@ -1199,14 +1018,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.hvals(key) : jedis.hvals(key);
+			return jedis.hvals(key);
 		}
 		catch (Exception e)
 		{
@@ -1231,14 +1045,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.hmget(key, fields) : jedis.hmget(key, fields);
+			return jedis.hmget(key, fields);
 		}
 		catch (Exception e)
 		{
@@ -1263,14 +1072,9 @@ public class RedisUtil implements IRedisIOp
 			return;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			String ret = isRedisCluster ? jedisCluster.hmset(key, hash) : jedis.hmset(key, hash);
+			String ret = jedis.hmset(key, hash);
 		}
 		catch (Exception e)
 		{
@@ -1295,14 +1099,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.hdel(key, fields) : jedis.hdel(key, fields);
+			return jedis.hdel(key, fields);
 		}
 		catch (Exception e)
 		{
@@ -1330,14 +1129,9 @@ public class RedisUtil implements IRedisIOp
 		if (StringUtils.isBlank(key))
 			return null;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.smembers(key) : jedis.smembers(key);
+			return jedis.smembers(key);
 		}
 		catch (Exception e)
 		{
@@ -1365,14 +1159,9 @@ public class RedisUtil implements IRedisIOp
 		if (StringUtils.isBlank(key))
 			return 0;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.scard(key) : jedis.scard(key);
+			return jedis.scard(key);
 		}
 		catch (Exception e)
 		{
@@ -1397,14 +1186,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.sadd(key, value) : jedis.sadd(key, value);
+			return jedis.sadd(key, value);
 		}
 		catch (Exception e)
 		{
@@ -1432,14 +1216,9 @@ public class RedisUtil implements IRedisIOp
 		if (StringUtils.isBlank(key))
 			return;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			Long ret = isRedisCluster ? jedisCluster.srem(key, value) : jedis.srem(key, value);
+			Long ret = jedis.srem(key, value);
 		}
 		catch (Exception e)
 		{
@@ -1467,14 +1246,9 @@ public class RedisUtil implements IRedisIOp
 		if (StringUtils.isBlank(key))
 			return null;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.srandmember(key) : jedis.srandmember(key);
+			return jedis.srandmember(key);
 		}
 		catch (Exception e)
 		{
@@ -1503,14 +1277,9 @@ public class RedisUtil implements IRedisIOp
 		if (StringUtils.isBlank(key))
 			return null;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.srandmember(key, count) : jedis.srandmember(key, count);
+			return jedis.srandmember(key, count);
 		}
 		catch (Exception e)
 		{
@@ -1539,14 +1308,9 @@ public class RedisUtil implements IRedisIOp
 		if (StringUtils.isBlank(key))
 			return null;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.spop(key) : jedis.spop(key);
+			return jedis.spop(key);
 		}
 		catch (Exception e)
 		{
@@ -1576,14 +1340,9 @@ public class RedisUtil implements IRedisIOp
 		if (StringUtils.isBlank(srcKey))
 			return null;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.smove(srcKey, dstKey, member) : jedis.smove(srcKey, dstKey, member);
+			return jedis.smove(srcKey, dstKey, member);
 		}
 		catch (Exception e)
 		{
@@ -1613,14 +1372,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.sadd(key, value) : jedis.sadd(key, value);
+			return jedis.sadd(key, value);
 		}
 		catch (Exception e)
 		{
@@ -1648,14 +1402,9 @@ public class RedisUtil implements IRedisIOp
 		if (StringUtils.isBlank(key))
 			return;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			Long ret = isRedisCluster ? jedisCluster.srem(key, value) : jedis.srem(key, value);
+			Long ret = jedis.srem(key, value);
 		}
 		catch (Exception e)
 		{
@@ -1677,14 +1426,9 @@ public class RedisUtil implements IRedisIOp
 		if (key == null)
 			return;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			Long ret = isRedisCluster ? jedisCluster.expire(key, seconds) : jedis.expire(key, seconds);
+			Long ret = jedis.expire(key, seconds);
 		}
 		catch (Exception e)
 		{
@@ -1707,14 +1451,9 @@ public class RedisUtil implements IRedisIOp
 		if (key == null)
 			return;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			Long ret = isRedisCluster ? jedisCluster.expireAt(key, unixTime) : jedis.expireAt(key, unixTime);
+			Long ret = jedis.expireAt(key, unixTime);
 		}
 		catch (Exception e)
 		{
@@ -1739,18 +1478,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			if (isRedisCluster)
-			{
-				LogUtil.INFO(log, "RedisUtil", "keys", "redisClusterNotSupportKeys", "fatal", "pattern", pattern);
-			}
-			return isRedisCluster ? null : jedis.keys(pattern);
+			return jedis.keys(pattern);
 		}
 		catch (Exception e)
 		{
@@ -1775,14 +1505,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.set(key, value) : jedis.set(key, value);
+			return jedis.set(key, value);
 		}
 		catch (Exception e)
 		{
@@ -1809,14 +1534,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.setex(key, seconds, value) : jedis.setex(key, seconds, value);
+			return jedis.setex(key, seconds, value);
 		}
 		catch (Exception e)
 		{
@@ -1843,14 +1563,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			Long result = isRedisCluster ? jedisCluster.setnx(key, value) : jedis.setnx(key, value);
+			Long result = jedis.setnx(key, value);
 			return result;
 		}
 		catch (Exception e)
@@ -1878,14 +1593,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			String value = isRedisCluster ? jedisCluster.get(key) : jedis.get(key);
+			String value = jedis.get(key);
 			if (null == value)
 			{
 				return null;
@@ -1916,14 +1626,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			String value = isRedisCluster ? jedisCluster.rpop(key) : jedis.rpop(key);
+			String value = jedis.rpop(key);
 			if (null == value)
 			{
 				return null;
@@ -1953,14 +1658,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			String value = isRedisCluster ? jedisCluster.lpop(key) : jedis.lpop(key);
+			String value = jedis.lpop(key);
 			if (null == value)
 			{
 				return null;
@@ -1990,14 +1690,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			List<String> values = isRedisCluster ? jedisCluster.lrange(key, begin, end) : jedis.lrange(key, begin, end);
+			List<String> values = jedis.lrange(key, begin, end);
 			if (null == values || values.size() < 1)
 			{
 				return null;
@@ -2027,14 +1722,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.lpush(key, value) : jedis.lpush(key, value);
+			return jedis.lpush(key, value);
 		}
 		catch (Exception e)
 		{
@@ -2067,14 +1757,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.mset(keysvalues) : jedis.mset(keysvalues);//(key, value);
+			return jedis.mset(keysvalues);//(key, value);
 		}
 		catch (Exception e)
 		{
@@ -2100,14 +1785,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.mset(keysvalues) : jedis.mset(keysvalues);//(key, value);
+			return jedis.mset(keysvalues);//(key, value);
 		}
 		catch (Exception e)
 		{
@@ -2132,14 +1812,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			List<String> values = isRedisCluster ? jedisCluster.mget(keys) : jedis.mget(keys);
+			List<String> values = jedis.mget(keys);
 			if (null == values)
 			{
 				return null;
@@ -2168,14 +1843,9 @@ public class RedisUtil implements IRedisIOp
 		if (StringUtils.isBlank(key))
 			return null;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			Long result = isRedisCluster ? jedisCluster.incr(key) : jedis.incr(key);
+			Long result = jedis.incr(key);
 			return result;
 		}
 		catch (Exception e)
@@ -2199,14 +1869,9 @@ public class RedisUtil implements IRedisIOp
 		if (StringUtils.isBlank(key))
 			return null;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			Long result = isRedisCluster ? jedisCluster.incrBy(key, value) : jedis.incrBy(key, value);
+			Long result = jedis.incrBy(key, value);
 			return result;
 		}
 		catch (Exception e)
@@ -2236,14 +1901,9 @@ public class RedisUtil implements IRedisIOp
 		if (StringUtils.isBlank(key))
 			return null;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			Double result = isRedisCluster ? jedisCluster.zincrby(key, 1, member) : jedis.zincrby(key, 1, member);
+			Double result = jedis.zincrby(key, 1, member);
 			return result;
 		}
 		catch (Exception e)
@@ -2267,15 +1927,9 @@ public class RedisUtil implements IRedisIOp
 		if (StringUtils.isBlank(key))
 			return null;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			Double result = isRedisCluster ? jedisCluster.zincrby(key, score, member) : jedis.zincrby(key, score,
-					member);
+			Double result = jedis.zincrby(key, score, member);
 			return result;
 		}
 		catch (Exception e)
@@ -2306,18 +1960,12 @@ public class RedisUtil implements IRedisIOp
 			return;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
 			byte[] keyBytes = key.getBytes("UTF-8");
 			byte[] fieldBytes = field.getBytes("UTF-8");
 			byte[] valueBytes = SerializeUtil.hessian2Serialize(value);
-			Long ret = isRedisCluster ? jedisCluster.hset(keyBytes, fieldBytes, valueBytes) : jedis.hset(keyBytes,
-					fieldBytes, valueBytes);
+			Long ret = jedis.hset(keyBytes, fieldBytes, valueBytes);
 		}
 		catch (Exception e)
 		{
@@ -2348,15 +1996,9 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			Map<byte[], byte[]> result = isRedisCluster ? jedisCluster.hgetAll(key.getBytes("UTF-8")) : jedis
-					.hgetAll(key.getBytes("UTF-8"));
+			Map<byte[], byte[]> result = jedis.hgetAll(key.getBytes("UTF-8"));
 			Set<byte[]> keys = result.keySet();
 
 			if (null == keys)
@@ -2402,22 +2044,13 @@ public class RedisUtil implements IRedisIOp
 			return null;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			byte[] valueBytes = isRedisCluster ? jedisCluster.hget(key.getBytes("UTF-8"), field.getBytes("UTF-8"))
-					: jedis.hget(key.getBytes("UTF-8"), field.getBytes("UTF-8"));
+			byte[] valueBytes = jedis.hget(key.getBytes("UTF-8"), field.getBytes("UTF-8"));
 			if (null == valueBytes)
 			{
-				//log.cacheInfo("HGet Key：" + key + ",Field: " + field + " missed!");
 				return null;
 			}
-			//log.cacheInfo("HGet Key：" + key + ",Field: " + field + " hit!");
-
 			return SerializeUtil.hessian2Deserialize(valueBytes);
 		}
 		catch (Exception e)
@@ -2449,18 +2082,8 @@ public class RedisUtil implements IRedisIOp
 			return false;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			if (isRedisCluster)
-			{
-				LogUtil.INFO(log, "RedisUtil", "hessianSetWithLock", "redisClusterNotSupportWatch", "fatal", "key", key);
-				return false;
-			}
 			long start = System.currentTimeMillis();
 			jedis.watch(key);
 			Transaction tx = jedis.multi();
@@ -2474,7 +2097,6 @@ public class RedisUtil implements IRedisIOp
 			}
 			jedis.unwatch();
 			long end = System.currentTimeMillis();
-			//log.infoInfo("hessianSetWithLock: time cost:" + (end - start));
 			return true;
 		}
 		catch (Exception e)
@@ -2506,17 +2128,11 @@ public class RedisUtil implements IRedisIOp
 			return false;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
 			byte[] channelByte = channel.getBytes("UTF-8");
 			byte[] messageByte = SerializeUtil.hessian2Serialize(message);
-			Long ret = isRedisCluster ? jedisCluster.publish(channelByte, messageByte) : jedis.publish(channelByte,
-					messageByte);
+			Long ret = jedis.publish(channelByte, messageByte);
 			return true;
 		}
 		catch (Exception e)
@@ -2548,17 +2164,11 @@ public class RedisUtil implements IRedisIOp
 			return -1;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
 			String messageStr = JacksonUtils.obj2json(message);
 
-			Long result = isRedisCluster ? jedisCluster.publish(channel, messageStr) : jedis.publish(channel,
-					messageStr);
+			Long result = jedis.publish(channel, messageStr);
 			return result;
 		}
 		catch (Exception e)
@@ -2595,16 +2205,9 @@ public class RedisUtil implements IRedisIOp
 		int expireSecs = 4;
 		String key = KEY_LOCK + id;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			String result = isRedisCluster ? jedisCluster.set(key, String.valueOf(System.currentTimeMillis()), "NX",
-					"EX", expireSecs) : jedis.set(key, String.valueOf(System.currentTimeMillis()), "NX", "EX",
-					expireSecs);
+			String result = jedis.set(key, String.valueOf(System.currentTimeMillis()), "NX", "EX", expireSecs);
 			LogUtil.INFO(log, "RedisUtil", "getLock", "set", "info", "key", key, "result", result);
 			if (null != result && "OK".equalsIgnoreCase(result))
 			{
@@ -2613,7 +2216,7 @@ public class RedisUtil implements IRedisIOp
 			else if (returnImmediately)
 			{
 				//当存入的值与当前时间相差180s以上的时候 本应该超时的key没有超时 这里强制设置超时时间为0 并且返回true
-				String expireStr = isRedisCluster ? jedisCluster.get(key) : jedis.get(key);
+				String expireStr = jedis.get(key);
 				Long now = System.currentTimeMillis();
 				String nowStr = String.valueOf(now);
 				if (!StringUtils.isNumeric(expireStr))
@@ -2623,10 +2226,8 @@ public class RedisUtil implements IRedisIOp
 				Long expireLong = Long.parseLong(expireStr);
 				if (now - expireLong > expireSecs * 1000)
 				{
-					Long d = isRedisCluster ? jedisCluster.del(key) : jedis.del(key);
-					String s = isRedisCluster ? jedisCluster.set(key, String.valueOf(System.currentTimeMillis()), "NX",
-							"EX", expireSecs) : jedis.set(key, String.valueOf(System.currentTimeMillis()), "NX", "EX",
-							expireSecs);
+					Long d = jedis.del(key);
+					String s = jedis.set(key, String.valueOf(System.currentTimeMillis()), "NX", "EX", expireSecs);
 					return true;
 				}
 				return false;
@@ -2635,12 +2236,10 @@ public class RedisUtil implements IRedisIOp
 			do
 			{
 				TimeUnit.MILLISECONDS.sleep(50);
-				String value = isRedisCluster ? jedisCluster.get(key) : jedis.get(key);
+				String value = jedis.get(key);
 				if (StringUtils.isEmpty(value))
 				{
-					result = isRedisCluster ? jedisCluster.set(key, String.valueOf(System.currentTimeMillis()), "NX",
-							"EX", expireSecs) : jedis.set(key, String.valueOf(System.currentTimeMillis()), "NX", "EX",
-							expireSecs);
+					result = jedis.set(key, String.valueOf(System.currentTimeMillis()), "NX", "EX", expireSecs);
 					LogUtil.INFO(log, "RedisUtil", "getLock", "setagain", "info", "key", key, "result", result);
 					if (null != result && "OK".equalsIgnoreCase(result))
 					{
@@ -2653,10 +2252,9 @@ public class RedisUtil implements IRedisIOp
 					return false;
 				}
 			}
-			while (!"OK".equalsIgnoreCase(isRedisCluster ? jedisCluster.set(key,
-					String.valueOf(System.currentTimeMillis()), "NX", "EX", expireSecs) : jedis.set(key,
-					String.valueOf(System.currentTimeMillis()), "NX", "EX", expireSecs)));
-			Long e = isRedisCluster ? jedisCluster.expire(key, expireSecs) : jedis.expire(key, expireSecs);
+			while (!"OK".equalsIgnoreCase(jedis.set(key, String.valueOf(System.currentTimeMillis()), "NX", "EX",
+					expireSecs)));
+			Long e = jedis.expire(key, expireSecs);
 			return true;
 		}
 		catch (NumberFormatException e)
@@ -2694,17 +2292,9 @@ public class RedisUtil implements IRedisIOp
 	{
 
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			if (isRedisCluster)
-				jedisCluster.subscribe(redisPubListener, channels);
-			else
-				jedis.subscribe(redisPubListener, channels);
+			jedis.subscribe(redisPubListener, channels);
 		}
 		catch (Exception e)
 		{
@@ -2729,16 +2319,10 @@ public class RedisUtil implements IRedisIOp
 	public void releaseLock(String id)
 	{
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
 			String key = KEY_LOCK + id;
-			Long ret = isRedisCluster ? jedisCluster.del(key) : jedis.del(key);
-			//			lockThreadLocal.remove();
+			Long ret = jedis.del(key);
 		}
 		catch (Exception e)
 		{
@@ -2759,15 +2343,10 @@ public class RedisUtil implements IRedisIOp
 	public Long setnx(String key, int seconds, String value)
 	{
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			long ret = isRedisCluster ? jedisCluster.setnx(key, value) : jedis.setnx(key, value);
-			Long e = isRedisCluster ? jedisCluster.expire(key, seconds) : jedis.expire(key, seconds);
+			long ret = jedis.setnx(key, value);
+			Long e = jedis.expire(key, seconds);
 			return ret;
 		}
 		catch (Exception e)
@@ -2790,14 +2369,9 @@ public class RedisUtil implements IRedisIOp
 	public Long zrem(String key, String... members)
 	{
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.zrem(key, members) : jedis.zrem(key, members);
+			return jedis.zrem(key, members);
 		}
 		catch (Exception e)
 		{
@@ -2818,15 +2392,9 @@ public class RedisUtil implements IRedisIOp
 	public Set<Tuple> zrangeByScoreWithScores(String key, double min, double max)
 	{
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.zrangeByScoreWithScores(key, min, max) : jedis
-					.zrangeByScoreWithScores(key, min, max);
+			return jedis.zrangeByScoreWithScores(key, min, max);
 		}
 		catch (Exception e)
 		{
@@ -2847,14 +2415,9 @@ public class RedisUtil implements IRedisIOp
 	public Long lpush(String key, String... strings)
 	{
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.lpush(key, strings) : jedis.lpush(key, strings);
+			return jedis.lpush(key, strings);
 		}
 		catch (Exception e)
 		{
@@ -2877,16 +2440,9 @@ public class RedisUtil implements IRedisIOp
 		int expireSecs = 30;
 		String key = KEY_LOCK + id;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			String result = isRedisCluster ? jedisCluster.set(key, String.valueOf(System.currentTimeMillis()), "NX",
-					"EX", expireSecs) : jedis.set(key, String.valueOf(System.currentTimeMillis()), "NX", "EX",
-					expireSecs);
+			String result = jedis.set(key, String.valueOf(System.currentTimeMillis()), "NX", "EX", expireSecs);
 			LogUtil.INFO(log, "RedisUtil", "getLock", "set", "info", "key", key, "result", result);
 			if (null != result && "OK".equalsIgnoreCase(result))
 			{
@@ -2900,16 +2456,15 @@ public class RedisUtil implements IRedisIOp
 				//这时可以直接设置expire并把锁纳为己用
 				//In Redis 2.6 or older, if the Key does not exists or does not have an associated expire, -1 is returned. 
 				//In Redis 2.8 or newer, if the Key does not have an associated expire, -1 is returned or if the Key does not exists, -2 is returned.
-				long ttlValue = isRedisCluster ? jedisCluster.ttl(key) : jedis.ttl(key);
+				long ttlValue = jedis.ttl(key);
 				if (ttlValue < 0)
 				{
-					Long s = isRedisCluster ? jedisCluster.setnx(key, String.valueOf(System.currentTimeMillis()))
-							: jedis.setnx(key, String.valueOf(System.currentTimeMillis()));
-					Long e = isRedisCluster ? jedisCluster.expire(key, expireSecs) : jedis.expire(key, expireSecs);
+					Long s = jedis.setnx(key, String.valueOf(System.currentTimeMillis()));
+					Long e = jedis.expire(key, expireSecs);
 					return true;
 				}
 
-				String expireStr = isRedisCluster ? jedisCluster.get(key) : jedis.get(key);
+				String expireStr = jedis.get(key);
 				Long now = System.currentTimeMillis();
 				String nowStr = String.valueOf(now);
 				if (!StringUtils.isNumeric(expireStr))
@@ -2919,18 +2474,9 @@ public class RedisUtil implements IRedisIOp
 				Long expireLong = Long.parseLong(expireStr);
 				if (now - expireLong > expireSecs * 1000)
 				{
-					if (isRedisCluster)
-					{
-						jedisCluster.del(key);
-						jedisCluster.setnx(key, nowStr);
-						jedisCluster.expire(key, expireSecs);
-					}
-					else
-					{
-						jedis.del(key);
-						jedis.setnx(key, nowStr);
-						jedis.expire(key, expireSecs);
-					}
+					jedis.del(key);
+					jedis.setnx(key, nowStr);
+					jedis.expire(key, expireSecs);
 					return true;
 				}
 				return false;
@@ -2960,14 +2506,9 @@ public class RedisUtil implements IRedisIOp
 	public List<String> time()
 	{
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.time() : jedis.time();
+			return jedis.time();
 		}
 		catch (Exception e)
 		{
@@ -3003,14 +2544,9 @@ public class RedisUtil implements IRedisIOp
 			return 0;
 		}
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			long newValue = isRedisCluster ? jedisCluster.hincrBy(key, field, value) : jedis.hincrBy(key, field, value);
+			long newValue = jedis.hincrBy(key, field, value);
 			return newValue;
 		}
 		catch (Exception e)
@@ -3039,14 +2575,9 @@ public class RedisUtil implements IRedisIOp
 		if (StringUtils.isBlank(key))
 			return false;
 		Jedis jedis = redisPool.getRedisClient();
-		ExtendsJedisCluster jedisCluster = null;
-		if (isRedisCluster)
-		{
-			jedisCluster = this.redisPool.getRedisClusterClient();
-		}
 		try
 		{
-			return isRedisCluster ? jedisCluster.sismember(key, member) : jedis.sismember(key, member);
+			return jedis.sismember(key, member);
 		}
 		catch (Exception e)
 		{
