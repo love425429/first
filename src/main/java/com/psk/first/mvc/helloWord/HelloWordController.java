@@ -29,7 +29,7 @@ public class HelloWordController extends BaseController
 	@Autowired
 	private HelloWordService helloWordService;
 
-	private RedisUtil testRedis = new RedisUtil("serverName3");
+	private RedisUtil testRedis = new RedisUtil("serverName1");
 
 	@RequestMapping(value =
 	{ "hello.html" })
